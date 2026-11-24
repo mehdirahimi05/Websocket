@@ -74,8 +74,9 @@
     <br>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.4/socket.io.js"></script>
 <script type="text/javascript">
-    let websocket = undefined;
+    let socket = undefined;
     let connected = false;
     let username = "";
 
@@ -84,12 +85,9 @@
             return;
         }
 
-        const secure = location.protocol === "https:" ? "s" : "";
-        websocket = new WebSocket(`ws${secure}://` + location.host + "/chat/" + user.value);
+        socket = io("http://localhost:8081")
 
-        websocket.onopen = function() {
-            console.log("Connected to " + websocket.url);
-
+        socket.on("connect", () => {
             $("user").disabled = true;
             $("connectButton").disabled = true;
             $("message").disabled = false;
@@ -97,17 +95,23 @@
             $("message").focus()
             connected = true;
             username = user.value
-        }
-        websocket.onclose = function () {
+        });
+
+        socket.on("disconnect", () => {
             connected = false;
             $("user").disabled = false;
             $("connectButton").disabled = false;
             $("message").disabled = true;
             $("sendButton").disabled = true;
-        };
+        });
+
+        socket.on("chat", (data) =>{
+            console.log("Antwort vom Server: " + data.message);
+            appendLine($("chat"), data.from, data.message, "user");
+        });
 
         const chat = $("chat");
-        websocket.onmessage = function(event) {
+        socket.onmessage = function(event) {
             const msg = JSON.parse(event.data);
 
             switch (msg.type) {
@@ -129,14 +133,14 @@
             $("message").value = ""
         }
 
-        websocket.onerror = function(event) {
+        socket.onerror = function(event) {
             chat.innerHTML = `<p>Error: ${event.data}<p>` + chat.innerHTML;
         }
     }
 
     function closeWebsocket() {
-        if(websocket) {
-            websocket.close();
+        if(socket) {
+            socket.close();
         }
     }
 
@@ -156,12 +160,10 @@
     }
 
     function sendMessage() {
-        const chatMessage = {
-            type: "CHAT_MESSAGE",
-            from: user.value,
-            message: message.value
-        };
-        websocket.send(JSON.stringify(chatMessage));
+        socket.emit("chat", {
+            from: $("user").value,
+            message: $("message").value
+        });
     }
 
     // poor man's version of jquery selector
