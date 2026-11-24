@@ -1,6 +1,7 @@
 public class ChatMessage {
     private String from;
     private String message;
+    private String roomName;
 
     public ChatMessage() {
         this.from = "";
@@ -21,5 +22,13 @@ public class ChatMessage {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
     }
 }

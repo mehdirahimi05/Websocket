@@ -162,7 +162,8 @@
     function sendMessage() {
         socket.emit("chat", {
             from: $("user").value,
-            message: $("message").value
+            message: $("message").value,
+            roomName: "klasseB"
         });
     }
 
